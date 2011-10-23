@@ -25,6 +25,7 @@ from StringIO     import StringIO
 from hashlib      import md5
 from types        import FunctionType
 from datetime     import datetime
+from numpy        import ndarray
 
 import geometry
 
@@ -612,6 +613,35 @@ def triangle(x1, y1, x2, y2, x3, y3, **kwargs):
             glVertex2f(x2, y2)
             glVertex2f(x3, y3)
             glEnd()
+
+def point(x, y=0, size=1, **kwargs):
+    """Draw a point with center located at x, y with certain point size.
+    x can also be a Nx2 numpy.ndarray object. In such case, glDrawArrays will
+    be called instead for efficient graphics."""
+    fill, stroke, strokewidth, strokestyle = color_mixin(**kwargs)
+    for i, clr in enumerate((fill, stroke)):
+        if clr is not None and (i==0 or strokewidth > 0):
+            if i == 1: 
+                glLineWidth(strokewidth)
+                glLineDash(strokestyle)
+
+            glColor4f(clr[0], clr[1], clr[2], clr[3] * _alpha)
+            glPointSize(size)
+
+            if type(x) in [int, float]:
+                # Note: this performs equally well as when using precompile().
+                glBegin(GL_POINTS)
+                glVertex2f(x, y)
+                glEnd()
+            elif type(x) is ndarray:
+                v = list(x.flat)
+                verts = (GLfloat * len(v))(*v)
+
+                glVertexPointer(2, GL_FLOAT, 0, verts)
+                glEnableClientState(GL_VERTEX_ARRAY)
+                glDrawArrays(GL_POINTS, 0, len(x))
+                glDisableClientState(GL_VERTEX_ARRAY)
+                glFlush()
 
 _ellipses = {}
 ELLIPSE_SEGMENTS = 50
