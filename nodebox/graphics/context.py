@@ -629,7 +629,6 @@ def point(x, y=0, size=1, **kwargs):
             glPointSize(size)
 
             if type(x) in [int, float]:
-                # Note: this performs equally well as when using precompile().
                 glBegin(GL_POINTS)
                 glVertex2f(x, y)
                 glEnd()
@@ -641,7 +640,6 @@ def point(x, y=0, size=1, **kwargs):
                 glEnableClientState(GL_VERTEX_ARRAY)
                 glDrawArrays(GL_POINTS, 0, len(x))
                 glDisableClientState(GL_VERTEX_ARRAY)
-                glFlush()
 
 _ellipses = {}
 ELLIPSE_SEGMENTS = 50
@@ -3822,6 +3820,9 @@ class Canvas(list, Prototype, EventHandler):
         
     def update(self):
         pass
+
+    def flush(self):
+        glFlush();
         
     def draw(self):
         self.clear()
