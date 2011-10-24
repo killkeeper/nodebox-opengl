@@ -628,17 +628,43 @@ def point(x, y=0, size=1, **kwargs):
             glColor4f(clr[0], clr[1], clr[2], clr[3] * _alpha)
             glPointSize(size)
 
+            array_draw_flag = False
+
             if type(x) in [int, float]:
                 glBegin(GL_POINTS)
                 glVertex2f(x, y)
                 glEnd()
+            elif type(x) is list and type(y) is list:
+                # If x and y are independently specified lists, merge two lists
+                # for drawing.
+                if len(x) != len(y):
+                    # unmatched vector lengths
+                    raise ValueError("Unequal vector lengths for x and y")
+                v = []
+                for i, px in enumerate(x):
+                    v.append(px)
+                    v.append(y[i])
+
+                verts = (GLfloat * len(v))(*v)
+                array_draw_flag = True
+
+            elif type(x) is list and y == 0:
+                # Only single list if provided.
+                if len(x) % 2 == 1:
+                    raise ValueError("Vector length is not a multiple of 2")
+                v = x
+                verts = (GLfloat * len(v))(*v)
+                array_draw_flag = True
+
             elif type(x) is ndarray:
                 v = list(x.flat)
                 verts = (GLfloat * len(v))(*v)
+                array_draw_flag = True
 
+            if array_draw_flag:
                 glVertexPointer(2, GL_FLOAT, 0, verts)
                 glEnableClientState(GL_VERTEX_ARRAY)
-                glDrawArrays(GL_POINTS, 0, len(x))
+                glDrawArrays(GL_POINTS, 0, len(v))
                 glDisableClientState(GL_VERTEX_ARRAY)
 
 _ellipses = {}
